@@ -1,7 +1,7 @@
 // Firebase configuration obtained from your Firebase Console screen.
 // This is a public project identifier, NOT a server-side administrator key.
 export const firebaseConfig = {
-  apiKey: "AIzaSyC8QDzhgsDd1Fe2LVQXcc65pmuO4P-tG2g",
+  apiKey: "AIzaSyC8QDZhgsDd1Fe2LVQXcc65pmuO4P-tG2g",
   authDomain: "percetakan-sablon.firebaseapp.com",
   projectId: "percetakan-sablon",
   storageBucket: "percetakan-sablon.firebasestorage.app",
