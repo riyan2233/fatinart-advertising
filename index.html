@@ -146,4 +146,15 @@ body[data-bgmode="solid"] .hero,body[data-bgmode="pattern"] .hero{background:var
 .banner-edit-preview{width:100%;aspect-ratio:1800/620;object-fit:cover;border-radius:13px;background:#263047;border:1px solid #ececf3;display:block;margin:8px 0 16px}
 @media(max-width:700px){.hero-slider{width:calc(100vw - 12px);border-radius:8px;margin:11px auto 16px}.slider-controls{min-height:49px;gap:6px}.slider-circle{width:31px;height:31px;font-size:20px}.slider-pause{margin-left:3px;padding:6px 11px}.slider-dot{width:10px;height:10px;margin:0 1px}.slider-number{right:9px;font-size:10px}.banner-grid-admin{grid-template-columns:1fr}}
 @media(prefers-reduced-motion:reduce){.slider-track{transition:none}}
-</style></head><body><div id="app"></div><div id="modal-root"></div><div id="print-root" style="display:none"></div><script type="module" src="./app.js?v=20261105-slider-v7"></script></body></html>
+
+/* FATIN ART — foto ruang percetakan asli pada banner pertama.
+   Slider dan overlay tetap berfungsi. Foto asli tidak dimanipulasi. */
+.slider-slide.studio-photo{background:#1b2834}
+.slider-slide.studio-photo img{object-fit:cover;object-position:center 54%;filter:saturate(1.04) contrast(1.05)}
+.slider-slide.studio-photo::after{content:"";position:absolute;inset:0;pointer-events:none;background:linear-gradient(90deg,rgba(10,19,29,.9) 0%,rgba(12,22,31,.72) 30%,rgba(12,22,31,.23) 63%,rgba(12,22,31,.06) 100%)}
+.slider-slide.studio-photo .slider-caption{z-index:1;top:50%;bottom:auto;left:5%;right:auto;transform:translateY(-50%);background:none;padding:0;width:min(60%,650px);gap:15px;text-shadow:0 2px 15px #0009}
+.slider-slide.studio-photo .slider-caption::before{content:"✦  FATIN ART PRINTING STUDIO";font-size:clamp(9px,.85vw,13px);letter-spacing:.16em;font-weight:800;color:#fff0df}
+.slider-slide.studio-photo .slider-caption strong{font-family:'Plus Jakarta Sans',sans-serif;font-size:clamp(18px,2.8vw,51px);line-height:1.13;letter-spacing:-.035em}
+.slider-slide.studio-photo .slider-caption small{font-size:clamp(10px,1.1vw,17px);line-height:1.6;font-weight:600;max-width:500px}
+@media(max-width:700px){.slider-slide.studio-photo img{object-position:64% center}.slider-slide.studio-photo .slider-caption{left:5%;width:78%;gap:4px}.slider-slide.studio-photo .slider-caption::before{font-size:8px;letter-spacing:.07em}.slider-slide.studio-photo .slider-caption strong{font-size:clamp(13px,4vw,20px)}.slider-slide.studio-photo .slider-caption small{font-size:9px;line-height:1.25}}
+</style></head><body><div id="app"></div><div id="modal-root"></div><div id="print-root" style="display:none"></div><script type="module" src="./app.js?v=20261105-printstudio-v8"></script></body></html>
