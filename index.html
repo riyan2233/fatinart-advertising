@@ -295,4 +295,40 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,te
  .nav .btn[data-act="manual-order"] span{display:none}
  .nav .btn[data-act="manual-order"]::before{content:"📝";font-size:18px}
 }
-</style></head><body><div id="app"></div><div id="modal-root"></div><div id="print-root" style="display:none"></div><script type="module" src="./app.js?v=20261105-customer-v10"></script></body></html>
+</style><style>
+/* FATIN ART v11: galeri foto customer dengan proses unggah yang disetujui admin */
+.customer-gallery-section{margin:54px 0 30px;padding:30px;border:1px solid #e1e9ed;border-radius:28px;background:linear-gradient(155deg,#ffffff 8%,#f4f8ff 100%);box-shadow:0 16px 45px #17365a10}
+.gallery-heading{display:flex;align-items:flex-end;justify-content:space-between;gap:20px;margin-bottom:26px;flex-wrap:wrap}
+.gallery-heading h2{font-size:clamp(24px,3vw,37px);letter-spacing:-1.2px;margin:6px 0 9px;color:#1b354c;font-weight:900}
+.gallery-heading p{margin:0;color:#637588;font-size:14px;line-height:1.7}
+.gallery-empty{border:1px dashed #c8dce8;border-radius:22px;padding:50px 22px;text-align:center;background:#fff}
+.gallery-empty h3{font-size:19px;margin:9px 0 6px}.gallery-empty p{color:#687889;font-size:13px;line-height:1.7;margin:0 auto;max-width:560px}
+.gallery-empty-icon{width:74px;height:74px;margin:0 auto 14px;display:grid;place-items:center;border-radius:22px;background:#e4f1ff;font-size:30px}
+.customer-gallery-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:18px}
+.customer-photo-card{background:white;border:1px solid #e3eaf0;border-radius:20px;overflow:hidden;box-shadow:0 11px 26px #21344c0c;min-width:0;transition:transform .2s}
+.customer-photo-card:hover{transform:translateY(-3px)}
+.customer-photo-frame{aspect-ratio:4/5;background:#e8eff3;overflow:hidden}
+.customer-photo-frame img{width:100%;height:100%;display:block;object-fit:cover}
+.customer-photo-copy{padding:17px}.customer-photo-copy span{font-size:10px;font-weight:850;text-transform:uppercase;color:#377da7;letter-spacing:.05em}
+.customer-photo-copy h3{font-size:14px;line-height:1.45;margin:6px 0;color:#1e3445}.customer-photo-copy p{font-size:12px;color:#728091;line-height:1.6;min-height:25px;margin:0 0 13px;overflow-wrap:anywhere}
+.customer-photo-copy .btn{max-width:100%;font-size:11px}
+.gallery-invite-alert{padding:15px 18px;border:1px solid #a9d7c6;border-radius:14px;background:#effbf6;color:#1c624e;font-weight:650;font-size:13px;margin:0 0 23px}
+.gallery-consent{display:flex;align-items:flex-start;gap:11px;margin:17px 0;line-height:1.65;font-size:13px;font-weight:650;cursor:pointer}
+.gallery-consent input{margin-top:5px;flex-shrink:0}
+.gallery-toolbar{margin:20px 0!important}.gallery-admin-stat{display:flex;flex-wrap:wrap;gap:11px;margin:15px 0 28px}
+.gallery-admin-stat>span{background:#f1f6fb;border-radius:14px;border:1px solid #e0eaf2;padding:12px 16px;font-size:13px;color:#547084}
+.gallery-admin-stat b{font-size:21px;color:#1d4a6a;margin-right:5px}
+.gallery-admin-title{font-size:18px;margin:30px 0 14px}
+.gallery-review-list,.gallery-invite-list{display:grid;gap:11px}
+.gallery-review,.gallery-invite-row{display:flex;align-items:center;gap:17px;padding:13px 15px;background:#fff;border:1px solid #e5eaf0;border-radius:17px;min-width:0;flex-wrap:wrap}
+.gallery-review>img{width:96px;height:96px;object-fit:cover;border-radius:11px;background:#dde9f0}
+.gallery-review>div:nth-child(2){flex:1;min-width:130px}.gallery-review b,.gallery-invite-row b{font-size:14px}.gallery-review p,.gallery-invite-row p{margin:7px 0;font-size:12px;color:#718296;overflow-wrap:anywhere}.gallery-review small{color:#8295a5}
+.gallery-invite-row{justify-content:space-between}.gallery-invite-row>div:first-child{min-width:160px;flex:1}
+.gallery-admin-grid{grid-template-columns:repeat(4,minmax(0,1fr))}
+.gallery-admin-grid .customer-photo-copy p{min-height:0}
+@media(max-width:1020px){.customer-gallery-grid,.gallery-admin-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media(max-width:680px){.customer-gallery-section{padding:18px;margin:32px 0 20px;border-radius:20px}.customer-gallery-grid,.gallery-admin-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.gallery-heading{align-items:start}.gallery-heading .btn{width:100%;white-space:normal;text-align:center}.gallery-heading .admin-toolbar{width:100%}.customer-photo-copy{padding:12px}.customer-photo-copy h3{font-size:12px}.customer-photo-copy p{font-size:11px}.customer-photo-copy .btn{font-size:10px;padding:9px}.gallery-review{align-items:start}.gallery-review>img{width:74px;height:74px}.gallery-review .admin-toolbar{width:100%}.slider-number{display:none}.slider-dot{width:8px;height:8px;margin:0}.slider-controls{gap:5px}.slider-pause{padding:5px 7px;margin:0}.slider-circle{width:25px;height:29px}}
+@media(max-width:375px){.customer-gallery-grid,.gallery-admin-grid{grid-template-columns:1fr}.customer-photo-frame{aspect-ratio:4/3}.customer-photo-copy h3{font-size:14px}.customer-gallery-section{padding:14px}.slider-controls{gap:3px}}
+.gallery-top-invite{display:flex;align-items:center;justify-content:space-between;gap:18px;flex-wrap:wrap;margin:14px 0 8px;padding:17px 19px;border-radius:17px;background:#eaf9f3;border:1px solid #b9e1d0;color:#185f49}.gallery-top-invite b{font-size:15px}.gallery-top-invite p{margin:5px 0 0;font-size:12px;line-height:1.5}.gallery-top-invite .btn{white-space:normal}@media(max-width:600px){.gallery-top-invite .btn{width:100%}}
+</style>
+</head><body><div id="app"></div><div id="modal-root"></div><div id="print-root" style="display:none"></div><script type="module" src="./app.js?v=20261105-gallery-v11"></script></body></html>
