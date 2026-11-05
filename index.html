@@ -119,4 +119,31 @@ body[data-bgmode="image"] .hero{background-image:linear-gradient(100deg,rgba(18,
 body[data-bgmode="solid"] .hero,body[data-bgmode="pattern"] .hero{background:var(--hero)}
 @media(max-width:920px){.hero-showcase{right:2%;width:32%}.hero-inner{max-width:69%;padding:38px 30px}.hero h1{font-size:clamp(32px,5vw,48px)}.showcase-paper.c b{font-size:14px}}
 @media(max-width:700px){.hero{min-height:auto;border-radius:23px;padding-bottom:8px}.hero-inner{max-width:100%;padding:36px 23px 32px}.hero h1{font-size:36px;letter-spacing:-1.8px;max-width:90%}.hero p{max-width:95%}.hero-showcase{display:none}.benefits{margin-bottom:34px}.section-head h2{font-size:24px}.product-body{padding:13px}.media-preview-row{gap:13px}.media-logo-preview{width:95px;height:95px}.media-editor{padding:16px}.media-head{display:block}.nav{min-height:69px}}
-</style></head><body><div id="app"></div><div id="modal-root"></div><div id="print-root" style="display:none"></div><script type="module" src="./app.js?v=20261105-audit-pro-v6"></script></body></html>
+</style><style>
+/* v7: enam banner promosi yang dikelola admin melalui koleksi banners */
+.hero-slider{margin:24px auto 14px;width:calc(100vw - 30px);max-width:1800px;position:relative;left:50%;transform:translateX(-50%);border:1px solid var(--border);border-radius:17px;overflow:hidden;background:#1c2635;box-shadow:0 20px 60px #1b1c311d}
+.slider-window{position:relative;overflow:hidden;aspect-ratio:1800/620;background:#263047;touch-action:pan-y;user-select:none}
+.slider-track{display:flex;height:100%;transition:transform .55s cubic-bezier(.2,.65,.25,1);will-change:transform}
+.slider-slide{flex:0 0 100%;height:100%;position:relative;background:#263047;display:block}
+.slider-slide img{display:block;width:100%;height:100%;object-fit:cover;pointer-events:none}
+.slider-caption{position:absolute;left:0;bottom:0;right:0;display:flex;flex-direction:column;align-items:start;gap:5px;color:white;padding:28px 5%;background:linear-gradient(transparent,#101826b8);pointer-events:none}.slider-caption strong{font-size:clamp(17px,2.4vw,35px);font-weight:900}.slider-caption small{font-size:clamp(11px,1.1vw,17px)}.slider-slide:focus-visible{outline:3px solid #fff;outline-offset:-5px}
+.slider-controls{min-height:62px;background:#fff;color:#212332;display:flex;align-items:center;justify-content:center;gap:13px;position:relative}
+.slider-circle{background:transparent;border:0;color:#424756;display:grid;place-items:center;border-radius:50%;width:35px;height:35px;font-size:23px}
+.slider-circle:hover,.slider-pause:hover{background:#f1f2f6}.slider-circle:focus-visible,.slider-dot:focus-visible,.slider-pause:focus-visible{outline:2px solid var(--accent)}
+.slider-dot{border:1.7px solid #9da1ab;border-radius:50%;width:12px;height:12px;padding:0;background:#fff;display:inline-block;margin:0 2px;transition:.2s}
+.slider-dot.is-current{background:var(--accent);border-color:var(--accent);transform:scale(1.17)}
+.slider-pause{border:0;background:transparent;border-left:1px solid #ececf0;padding:8px 16px;font-size:19px;color:#3d4353;margin-left:10px;border-radius:5px}
+.slider-number{position:absolute;right:22px;font-size:12px;font-weight:800;color:#8891a0}
+.slider-fallback{padding:30px;color:white;display:grid;place-items:center;height:100%;background:linear-gradient(130deg,#26243d,var(--accent))}
+.slider-admin-tip{border:1px solid #dfe4ef;background:#f9fbff;color:#4f6073;border-radius:12px;padding:13px 16px;font-size:12px;margin-top:12px}
+.banner-grid-admin{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:17px;margin-top:18px}
+.banner-card-admin{border:1px solid var(--border);background:#fff;border-radius:17px;padding:12px;overflow:hidden}
+.banner-card-admin img{aspect-ratio:1800/620;width:100%;object-fit:cover;border-radius:11px;background:#273043}
+.banner-card-admin .banner-card-name{font-size:13px;font-weight:800;display:block;margin:12px 0 5px}
+.banner-card-admin .banner-card-desc{font-size:11px;line-height:1.5;color:var(--muted);margin:0 0 12px;min-height:16px}
+.banner-card-actions{display:flex;gap:7px;flex-wrap:wrap}
+.banner-card-actions .btn{flex:1;padding:9px;font-size:11px}
+.banner-edit-preview{width:100%;aspect-ratio:1800/620;object-fit:cover;border-radius:13px;background:#263047;border:1px solid #ececf3;display:block;margin:8px 0 16px}
+@media(max-width:700px){.hero-slider{width:calc(100vw - 12px);border-radius:8px;margin:11px auto 16px}.slider-controls{min-height:49px;gap:6px}.slider-circle{width:31px;height:31px;font-size:20px}.slider-pause{margin-left:3px;padding:6px 11px}.slider-dot{width:10px;height:10px;margin:0 1px}.slider-number{right:9px;font-size:10px}.banner-grid-admin{grid-template-columns:1fr}}
+@media(prefers-reduced-motion:reduce){.slider-track{transition:none}}
+</style></head><body><div id="app"></div><div id="modal-root"></div><div id="print-root" style="display:none"></div><script type="module" src="./app.js?v=20261105-slider-v7"></script></body></html>
