@@ -74,4 +74,12 @@ body[data-family="bold"] .hero{border-radius:11px}body[data-family="bold"] .hero
 #product-save-status{line-height:1.6;min-height:20px}
 .admin-products .admin-product img{background:#eef0f4;object-fit:cover}
 @media(max-width:680px){.modal{max-height:94vh}.modal-head{position:sticky;top:-18px;background:var(--card);z-index:2;padding-bottom:12px}}
-</style></head><body><div id="app"></div><div id="modal-root"></div><div id="print-root" style="display:none"></div><script type="module" src="./app.js?v=20261105-photo-fix-3"></script></body></html>
+</style><style>
+/* Status tetap terlihat, termasuk error yang tadinya hilang dalam toast 4 detik */
+.photo-status{font-size:12px;border-radius:12px;padding:13px 15px;margin:10px 0;background:#edf4ff;color:#1c4c79;font-weight:700;line-height:1.6}
+.photo-status.success{background:#e7f9ed;color:#136235}.photo-status.error{background:#fff1ed;color:#a5332b}
+.photo-error{display:block;padding:15px;margin:10px 0 17px;background:#fff0ed;border:1px solid #f7b7a8;color:#9d2d20;border-radius:12px;line-height:1.7;font-size:12px;white-space:pre-wrap;word-break:break-word}
+.saved-photo-card{display:flex;gap:15px;align-items:start;padding:13px;margin:0 0 18px;border-radius:14px;background:#f5f7f9;border:1px solid #e6eaf0}
+.saved-photo-card img{width:125px;height:105px;object-fit:cover;border-radius:10px}.saved-photo-card b{font-size:16px}.saved-photo-card small{font-size:11px;color:#617083}
+@media(max-width:480px){.saved-photo-card{display:block}.saved-photo-card img{width:100%;height:170px;margin-bottom:11px}}
+</style></head><body><div id="app"></div><div id="modal-root"></div><div id="print-root" style="display:none"></div><script type="module" src="./app.js?v=20261105-autosave-v4"></script></body></html>

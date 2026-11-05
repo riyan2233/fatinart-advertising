@@ -70,6 +70,8 @@ const money=n=>'Rp '+Number(n||0).toLocaleString('id-ID');
 const safeImg=s=>typeof s==='string'&&(/^https:\/\//.test(s)||/^data:image\/(jpeg|png|webp);base64,[\w+/=]+$/.test(s))?esc(s):'';
 const errMsg=e=>e?.code?.includes('permission-denied')?'Firestore menolak akses. Periksa apakah Rules sudah DIPUBLISH dan cocok dengan struktur data aplikasi; periksa juga admins/UID dengan field active bertipe boolean dan bernilai true.':e?.code?.includes('invalid-credential')?'Email atau password Firebase tidak benar.':e?.code?.includes('unavailable')?'Tidak dapat menghubungi Firestore. Periksa koneksi internet dan status Firebase.':e?.code?.includes('resource-exhausted')?'Kuota atau ukuran dokumen Firestore terlampaui. Kompres foto dan periksa pemakaian Firebase.':e?.message||'Terjadi kesalahan.';
 let lastWriteError='';
+let photoSaving=false;
+let pendingImageUrl=null;
 function writeFail(e,activity='Simpan data'){lastWriteError=`${activity}: ${errMsg(e)}`;console.error('[FATIN ART] '+activity,e);toast(lastWriteError);if(view==='admin')updateStatusDisplay()}
 function updateStatusDisplay(){let el=$('firestore-diagnostic-banner');if(el)el.innerHTML=lastWriteError?`<b>⚠ ${esc(lastWriteError)}</b><br><span>Hak login Firebase tidak otomatis berarti izin menulis Firestore. Gunakan tombol <b>Diagnostik Firebase</b> dan ikuti petunjuk aturan di dalam paket.</span>`:'<b>ℹ Jika penyimpanan ditolak:</b> gunakan Diagnostik Firebase. Akses admin harus cocok dengan Rules yang telah dipublikasikan.'}
 
@@ -127,8 +129,8 @@ function adminPanel(){
  if(tab==='orders')return `<div class="row"><div><h3>Nota dari pesanan WhatsApp</h3><p class="small muted">Hanya admin yang dapat melihat data pelanggan.</p></div><button class="btn sm" data-act="new-order">+ Buat Nota</button></div>${orders.map(o=>`<div class="admin-product" style="display:block;margin:12px 0"><div class="row"><b>${esc(o.id)} · ${esc(o.name)}</b><span class="pill">${esc(o.status)}</span></div><p class="small muted">${esc(o.date||'')} • ${esc(o.phone)} • ${money(o.total)}</p><p class="small">${esc(o.items)}</p><div class="admin-toolbar"><select class="field" style="max-width:210px" data-status="${esc(o.id)}">${['Menunggu konfirmasi','Diproses','Selesai','Lunas','Dibatalkan'].map(x=>`<option ${o.status===x?'selected':''}>${x}</option>`).join('')}</select><button class="btn outline sm" data-invoice="${esc(o.id)}">Lihat / Cetak</button><button class="btn ghost sm" data-edit-order="${esc(o.id)}">Edit</button><button class="btn red sm" data-delete-order="${esc(o.id)}">Hapus</button></div></div>`).join('')||'<p class="small muted">Belum ada nota. Buat nota setelah menerima pesanan melalui WhatsApp.</p>'}`;
  return `<h3>Cadangan dan impor data</h3><p class="small muted">Ekspor JSON untuk menyimpan salinan produk dan pengaturan. Jangan bagikan file berisi data pribadi.</p><div class="admin-toolbar"><button class="btn" data-act="export">⬇ Ekspor JSON</button><label class="btn outline">⬆ Impor JSON<input type="file" id="importFile" accept=".json,application/json" hidden></label></div><hr style="border:0;border-top:1px solid var(--border);margin:25px 0"><h3>Migrasi katalog lama</h3><p class="small muted">Mengunggah data dari versi lokal aplikasi sebelumnya pada browser ini, tanpa menghapus produk online lain.</p><button class="btn outline" data-act="migrate">Migrasikan produk lokal ke Firebase</button>`;
 }
-function productForm(id=''){const p=products.find(x=>x.id===id)||{name:'',category:'',price:0,desc:'',img:''};popup(id?'Edit Produk':'Tambah Produk',`<form id="productForm" data-id="${esc(id)}"><div class="formrow"><label>Nama produk<input class="field" name="name" maxlength="130" required value="${esc(p.name)}"></label></div><div class="formgrid"><div class="formrow"><label>Kategori<input class="field" name="category" maxlength="60" required value="${esc(p.category)}"></label></div><div class="formrow"><label>Harga (Rp)<input class="field" name="price" type="number" min="0" max="1000000000" required value="${Number(p.price)||0}"></label></div></div><div class="formrow"><label>Deskripsi<textarea class="field" name="desc" maxlength="1500" rows="3">${esc(p.desc)}</textarea></label></div><div class="formrow"><label>Upload PNG/JPG/WEBP maksimal 12 MB<input class="field" type="file" id="photoFile" accept="image/png,image/jpeg,image/webp"></label><p class="small muted">Foto dikompresi otomatis dan disimpan di Firestore. Tidak cocok menyimpan file cetak HD.</p><img class="preview ${p.img?'':'hidden'}" id="photoPreview" src="${safeImg(p.img)}"></div><p class="notice" style="margin:12px 0">Foto yang tampil di atas masih <b>pratinjau</b>. Klik tombol di bawah dan tunggu pesan <b>“Produk terverifikasi di Firebase”</b> sebelum menutup halaman.</p><div id="product-save-status" role="status" aria-live="polite" class="small muted" style="margin-bottom:10px"></div><button class="btn full" type="submit">💾 Simpan & Verifikasi Produk</button></form>`)}
-async function shrink(file){
+function productForm(id=''){const p=products.find(x=>x.id===id)||{name:'',category:'',price:0,desc:'',img:''};popup(id?'Edit Produk':'Tambah Produk',`<form id="productForm" data-id="${esc(id)}"><div class="formrow"><label>Nama produk<input class="field" name="name" maxlength="130" required value="${esc(p.name)}"></label></div><div class="formgrid"><div class="formrow"><label>Kategori<input class="field" name="category" maxlength="60" required value="${esc(p.category)}"></label></div><div class="formrow"><label>Harga (Rp)<input class="field" name="price" type="number" min="0" max="1000000000" required value="${Number(p.price)||0}"></label></div></div><div class="formrow"><label>Deskripsi<textarea class="field" name="desc" maxlength="1500" rows="3">${esc(p.desc)}</textarea></label></div><div class="formrow"><label>Upload PNG/JPG/WEBP maksimal 12 MB<input class="field" type="file" id="photoFile" accept="image/png,image/jpeg,image/webp"></label><p class="small muted"><b>BARU v4:</b> memilih foto akan langsung mengunggahnya ke Firebase secara otomatis. Foto dikompresi sebagai thumbnail katalog, bukan berkas cetak HD.</p><img class="preview ${p.img?'':'hidden'}" id="photoPreview" src="${safeImg(p.img)}"></div><p class="notice" style="margin:12px 0">Saat foto dipilih, sistem mulai menyimpannya otomatis. Jangan tutup jendela sampai muncul <b>✅ Foto berhasil tersimpan dan terverifikasi di Firebase</b>. Jika masih gagal, pesan error lengkap akan tampil di bawah.</p><div id="product-save-status" role="status" aria-live="polite" class="small muted" style="margin-bottom:10px"></div><div id="product-save-error" class="photo-error hidden" role="alert"></div><button class="btn full" type="submit">💾 Simpan & Verifikasi Produk</button></form>`)}
+async function shrink(file, maxLength=76000){
  if(!file)return '';
  if(!['image/png','image/jpeg','image/webp'].includes(file.type)||file.size>12*1024*1024)throw Error('Gunakan PNG/JPG/WEBP maksimal 12 MB.');
  let source,url='';
@@ -139,24 +141,22 @@ async function shrink(file){
      source=await new Promise((resolve,reject)=>{let im=new Image();im.onload=()=>resolve(im);im.onerror=()=>reject(Error('Gambar tidak dapat dibuka.'));im.src=url});
    }
    let sw=source.width||source.naturalWidth,sh=source.height||source.naturalHeight;
-   if(!sw||!sh)throw Error('Ukuran gambar tidak valid.');
-   const ratio=Math.min(1,1000/Math.max(sw,sh));
-   let w=Math.max(1,Math.round(sw*ratio)),h=Math.max(1,Math.round(sh*ratio));
+   if(!sw||!sh)throw Error('Dimensi gambar tidak dapat dibaca.');
+   const scale=Math.min(1,840/Math.max(sw,sh));
+   let w=Math.max(1,Math.round(sw*scale)),h=Math.max(1,Math.round(sh*scale));
    const canvas=document.createElement('canvas');let result='';
-   for(let i=0;i<12;i++){
+   for(let i=0;i<18;i++){
      canvas.width=w;canvas.height=h;
-     let ctx=canvas.getContext('2d');if(!ctx)throw Error('Browser tidak mendukung pemrosesan gambar.');
+     const ctx=canvas.getContext('2d');if(!ctx)throw Error('Browser tidak mendukung kompresi gambar.');
      ctx.fillStyle='#ffffff';ctx.fillRect(0,0,w,h);ctx.drawImage(source,0,0,w,h);
-     result=canvas.toDataURL('image/jpeg',Math.max(.42,.82-i*.035));
-     if(result.length<145000)break;
-     w=Math.max(1,Math.round(w*.83));h=Math.max(1,Math.round(h*.83));
+     result=canvas.toDataURL('image/jpeg',Math.max(.39,.79-(i%5)*.075));
+     if(result.startsWith('data:image/jpeg;base64,')&&result.length<=maxLength)break;
+     // Turunkan resolusi bertahap agar data JPG tidak melebihi aturan Firestore.
+     if(i%2===1){w=Math.max(1,Math.round(w*.83));h=Math.max(1,Math.round(h*.83));}
    }
-   if(result.length>=145000)throw Error('Gambar terlalu besar untuk database. Coba gambar berukuran lebih kecil.');
+   if(result.length>maxLength||!result.startsWith('data:image/jpeg;base64,'))throw Error('Foto belum dapat dikompresi. Coba JPG/PNG resolusi lebih kecil.');
    return result;
- }finally{
-   if(source&&typeof source.close==='function')source.close();
-   if(url)URL.revokeObjectURL(url);
- }
+ }finally{if(source&&typeof source.close==='function')source.close();if(url)URL.revokeObjectURL(url)}
 }
 function sortOnlineProducts(){products.sort((a,b)=>String(a.id).localeCompare(String(b.id),undefined,{numeric:true}))}
 function updateOnlineProduct(p){products=[...products.filter(x=>x.id!==p.id),p];sortOnlineProducts();pReady=true;productError='';updateConnectionError();render()}
@@ -168,42 +168,89 @@ async function fetchProductsFromServer(){
   toast(`Data terbaru dari server: ${products.length} produk online.`);
  }catch(e){writeFail(e,'Memuat ulang daftar produk dari server')}
 }
-async function saveProduct(f){
- if(!isAdmin)return toast('Hanya admin yang dapat menyimpan produk.');
- if(busy)return toast('Penyimpanan lain sedang berjalan. Coba tekan Simpan lagi setelah proses selesai.');
+function productStatus(message,state='working'){
+ const el=$('product-save-status');
+ if(!el)return;
+ el.className='photo-status '+state;
+ el.textContent=message;
+}
+function showProductErrorDetail(message){
+ const el=$('product-save-error');if(!el)return;
+ el.classList.remove('hidden');
+ el.textContent=message;
+}
+function firebaseTimeout(promise,ms,label){
+ let timer;
+ return Promise.race([
+  promise,
+  new Promise((_,reject)=>{timer=setTimeout(()=>{const e=new Error(`${label} belum mendapat respons dari Firebase selama ${Math.ceil(ms/1000)} detik. Koneksi atau server kemungkinan sedang bermasalah; periksa Cek Produk Online sebelum mengulang.`);e.code='deadline-exceeded';reject(e)},ms)})
+ ]).finally(()=>clearTimeout(timer));
+}
+function isFormValid(f){
+ if(!f?.isConnected)return false;
+ const ok=f.checkValidity();
+ if(!ok)f.reportValidity();
+ return ok;
+}
+async function saveProduct(f,{automatic=false}={}){
+ if(!isAdmin)return toast('Anda harus login sebagai admin.');
+ if(photoSaving)return toast('Unggah sebelumnya masih berjalan.');
+ if(!isFormValid(f))return productStatus('Isi nama, kategori dan harga dahulu, lalu pilih ulang fotonya.','error');
  const button=f.querySelector('button[type="submit"]');
- const status=$('product-save-status');
  const id=f.dataset.id||`p${Date.now().toString(36)}${Math.random().toString(36).slice(2,6)}`;
- const data=new FormData(f),old=products.find(x=>x.id===id),file=$('photoFile')?.files?.[0];
- busy=true;button.disabled=true;button.textContent='⏳ Menyiapkan dan mengirim produk…';
- if(status)status.textContent='Mohon jangan menutup jendela. Memproses gambar dan menulis ke server…';
- let committed=false;
+ const data=new FormData(f),old=products.find(x=>x.id===id),file=f.querySelector('#photoFile')?.files?.[0];
+ const errEl=$('product-save-error');if(errEl){errEl.textContent='';errEl.classList.add('hidden')}
+ photoSaving=true;button.disabled=true;button.textContent='⏳ Mengunggah ke Firebase…';
+ let committed=false,stage='persiapan foto';
  try{
-  const img=file?await shrink(file):old?.img||'';
-  const payload={id,name:String(data.get('name')).trim(),category:String(data.get('category')).trim(),price:Number(data.get('price')),desc:String(data.get('desc')).trim(),img,updatedAt:serverTimestamp()};
-  if(!payload.name||!payload.category)throw Error('Nama produk dan kategori wajib diisi.');
-  if(!Number.isFinite(payload.price)||payload.price<0)throw Error('Harga harus berupa angka yang valid.');
-  if(status)status.textContent='Mengirim data produk ke Firestore…';
-  await setDoc(doc(db,'products',id),payload);
-  committed=true;
-  if(status)status.textContent='Membaca kembali produk dari server untuk memastikan foto terbaru tersimpan…';
-  const saved=await getDocFromServer(doc(db,'products',id));
-  if(!saved.exists())throw Error('Server belum mengembalikan dokumen produk.');
-  const remote={...saved.data(),id:saved.id};
-  if(remote.name!==payload.name||remote.img!==payload.img||remote.price!==payload.price){
-   throw Error('Isi produk yang dibaca dari server belum cocok dengan data terbaru.');
-  }
-  updateOnlineProduct(remote);
-  lastWriteError='';
-  closePopup();
-  popup('✅ Produk terverifikasi di Firebase',`<p>Foto dan informasi <b>${esc(remote.name)}</b> berhasil disimpan dan dibaca ulang dari server.</p><p class="small muted">Perubahan produk akan muncul di katalog pelanggan yang terhubung ke database yang sama. Bila tab katalog sudah terbuka, perbarui halaman tersebut.</p><div class="admin-toolbar"><a class="btn" href="${esc(customerURL())}#produk" target="_blank" rel="noopener noreferrer">👁 Lihat di Katalog Pembeli ↗</a><button class="btn outline" type="button" data-act="close">Lanjut Kelola Produk</button></div>`);
-  toast('Produk terverifikasi di Firebase. Foto katalog diperbarui.');
+   if(!navigator.onLine)throw Object.assign(new Error('Browser sedang offline. Sambungkan internet lalu coba lagi.'),{code:'offline'});
+   productStatus(file?'📷 Mengompresi foto untuk katalog…':'⏳ Menyiapkan perubahan produk…');
+   const img=file?await shrink(file,76000):old?.img||'';
+   const payload={id,name:String(data.get('name')).trim(),category:String(data.get('category')).trim(),price:Number(data.get('price')),desc:String(data.get('desc')).trim(),img,updatedAt:serverTimestamp()};
+   if(!payload.name||!payload.category)throw Error('Nama produk dan kategori wajib diisi.');
+   if(!Number.isFinite(payload.price)||payload.price<0)throw Error('Harga produk tidak valid.');
+   if(file&&(!img||!img.startsWith('data:image/jpeg;base64,')))throw Error('Hasil kompresi foto tidak valid.');
+   stage='kirim ke products/'+id;
+   productStatus(`☁️ Mengirim ${file?`foto thumbnail (${Math.round(img.length/1024)} KB) dan `:''}data produk ke Firestore…`);
+   // setDoc resolves after Firebase mengakui penulisan ke server, bukan saat pratinjau tampil.
+   await firebaseTimeout(setDoc(doc(db,'products',id),payload),25000,'Simpan foto');
+   committed=true;
+   stage='verifikasi server';
+   productStatus('🔍 Memastikan foto terbaru tersimpan pada Firestore (server)…');
+   let remote=null,lastVerifyError=null;
+   for(let attempt=0;attempt<3;attempt++){
+     try{
+       const snap=await firebaseTimeout(getDocFromServer(doc(db,'products',id)),12000,'Verifikasi foto');
+       if(!snap.exists())throw Error('Dokumen belum ditemukan setelah disimpan.');
+       const fresh={...snap.data(),id:snap.id};
+       if(fresh.img!==payload.img||fresh.name!==payload.name||Number(fresh.price)!==payload.price)throw Error('Data yang dibaca belum sesuai unggahan terbaru.');
+       remote=fresh;break;
+     }catch(e){lastVerifyError=e;if(attempt<2)await new Promise(r=>setTimeout(r,450*(attempt+1)))}
+   }
+   if(!remote)throw lastVerifyError||Error('Verifikasi foto di server belum berhasil.');
+   updateOnlineProduct(remote);
+   lastWriteError='';
+   productStatus('✅ Foto dan produk berhasil tersimpan online dan terverifikasi.','success');
+   closePopup();
+   popup('✅ FOTO BERHASIL DISIMPAN ONLINE',`<div class="saved-photo-card"><img src="${safeImg(remote.img)}" alt="Foto produk tersimpan"><div><b>${esc(remote.name)}</b><p class="small muted">Foto sudah dibaca kembali dari server Firebase. Semua pengunjung dengan akses katalog yang sama akan melihat foto baru.</p><small>Data foto: ${Math.round(String(remote.img).length/1024)} KB</small></div></div><div class="admin-toolbar"><a class="btn" href="${esc(customerURL())}#produk" target="_blank" rel="noopener noreferrer">👁 Buka Katalog Pembeli ↗</a><button class="btn outline" type="button" data-act="close">Tutup</button></div>`);
+   toast('Foto baru tersimpan di Firebase.');
  }catch(e){
-  writeFail(e,committed?'Memverifikasi produk setelah disimpan':'Menyimpan produk');
-  if(status)status.textContent=committed?'Produk dikirim ke server tetapi pembacaan ulang belum berhasil. Coba Cek Produk Online.':'Gagal menyimpan: '+errMsg(e);
+   const code=e?.code||'error';
+   let action='';
+   if(String(code).includes('permission-denied'))action='Firestore mengizinkan login/tema tetapi menolak penulisan products/'+id+'. Periksa bagian match /products/{productId} di Rules; pastikan allow update/create untuk isAdmin() dan ukuran img sesuai aturan.';
+   else if(String(code).includes('resource-exhausted'))action='Batas database/kuota tercapai. Foto katalog perlu diperkecil atau gunakan penyimpanan gambar terpisah.';
+   else if(String(code).includes('unavailable')||String(code)==='offline')action='Periksa internet. Pastikan Firestore dapat diakses dan deployment Vercel terbaru sudah aktif.';
+   else if(String(code).includes('deadline-exceeded'))action='Jangan langsung klik berkali-kali; tutup dan gunakan Cek Produk Online untuk mengetahui apakah perubahan telah sampai ke server.';
+   else action='Coba klik Simpan lagi. Jika masih gagal, salin pesan ini untuk diperiksa.';
+   const message=`❌ ${committed?'Foto sudah dikirim tetapi belum terverifikasi':'Gagal menyimpan foto'} | Tahap: ${stage} | Kode: ${code} | ${e?.message||String(e)} | ${action}`;
+   console.error('[FATIN ART v4 PHOTO UPLOAD]',{stage,code,id,bytes:file?.size||0},e);
+   productStatus(committed?'⚠️ Penulisan berhasil, tetapi verifikasi server belum selesai.':'❌ Simpan gagal. Coba lagi setelah membaca penjelasan di bawah.','error');
+   showProductErrorDetail(message);
+   lastWriteError=message;updateStatusDisplay();
+   toast('Foto belum terverifikasi. Detail error ada di bawah tombol upload.');
  }finally{
-  busy=false;
-  if(button.isConnected){button.disabled=false;button.textContent='💾 Simpan & Verifikasi Produk';}
+   photoSaving=false;
+   if(button.isConnected){button.disabled=false;button.textContent='💾 Simpan / Coba Lagi ke Firebase'}
  }
 }
 async function saveSettings(f){
@@ -350,6 +397,16 @@ document.addEventListener('click',async e=>{
  if(act==='migrate'){let ids=new Set(products.map(p=>p.id)),list=oldProducts().filter(p=>!ids.has(p.id));if(!list.length)return toast('Produk lokal sudah tersedia online.');if(confirm(`Tambahkan ${list.length} produk dari browser lama tanpa menimpa produk online?`))await uploadProducts(list);return}
 });
 document.addEventListener('submit',async e=>{let f=e.target;if(!['loginForm','productForm','settingsForm','backgroundForm','checkoutForm','orderForm'].includes(f.id))return;e.preventDefault();if(f.id==='loginForm')return login(f);if(f.id==='checkoutForm')return submitCheckout(f);if(!isAdmin)return toast('Hanya admin yang boleh mengubah data.');if(f.id==='productForm')return saveProduct(f);if(f.id==='settingsForm')return saveSettings(f);if(f.id==='backgroundForm')return saveBackground(f);if(f.id==='orderForm')return saveOrder(f)});
-document.addEventListener('change',async e=>{let el=e.target;if((el.id==='photoFile'||el.id==='backgroundFile') && el.files?.[0]){let img=el.id==='backgroundFile'?$('backgroundPreview'):$('photoPreview'),url=URL.createObjectURL(el.files[0]);img.src=url;img.classList.remove('hidden');img.onload=()=>URL.revokeObjectURL(url)}if(!isAdmin)return;if(el.id==='importFile'&&el.files?.[0])return importJSON(el.files[0]);if(el.hasAttribute('data-status'))try{await setDoc(doc(db,'orders',el.dataset.status),{status:el.value},{merge:true});toast('Status diperbarui.')}catch(e){toast(errMsg(e))}});
+document.addEventListener('change',async e=>{let el=e.target;if((el.id==='photoFile'||el.id==='backgroundFile') && el.files?.[0]){
+ const img=el.id==='backgroundFile'?$('backgroundPreview'):$('photoPreview');const url=URL.createObjectURL(el.files[0]);
+ if(img){img.src=url;img.classList.remove('hidden');img.onload=()=>URL.revokeObjectURL(url)}
+ if(el.id==='photoFile'){
+   const form=el.closest('form');
+   if(isAdmin&&form?.id==='productForm'){
+     productStatus('Foto dipilih. Mengunggah otomatis ke Firebase…');
+     await saveProduct(form,{automatic:true});
+   }
+ }
+}if(!isAdmin)return;if(el.id==='importFile'&&el.files?.[0])return importJSON(el.files[0]);if(el.hasAttribute('data-status'))try{await setDoc(doc(db,'orders',el.dataset.status),{status:el.value},{merge:true});toast('Status diperbarui.')}catch(e){toast(errMsg(e))}});
 document.addEventListener('keydown',e=>{if(e.key==='Escape')closePopup()});
 render();
