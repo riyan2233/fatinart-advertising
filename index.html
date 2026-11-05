@@ -331,4 +331,30 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,te
 @media(max-width:375px){.customer-gallery-grid,.gallery-admin-grid{grid-template-columns:1fr}.customer-photo-frame{aspect-ratio:4/3}.customer-photo-copy h3{font-size:14px}.customer-gallery-section{padding:14px}.slider-controls{gap:3px}}
 .gallery-top-invite{display:flex;align-items:center;justify-content:space-between;gap:18px;flex-wrap:wrap;margin:14px 0 8px;padding:17px 19px;border-radius:17px;background:#eaf9f3;border:1px solid #b9e1d0;color:#185f49}.gallery-top-invite b{font-size:15px}.gallery-top-invite p{margin:5px 0 0;font-size:12px;line-height:1.5}.gallery-top-invite .btn{white-space:normal}@media(max-width:600px){.gallery-top-invite .btn{width:100%}}
 </style>
-</head><body><div id="app"></div><div id="modal-root"></div><div id="print-root" style="display:none"></div><script type="module" src="./app.js?v=20261105-gallery-v11"></script></body></html>
+<style>
+/* FATIN ART v12 — Editorial masonry, preserve original portrait/landscape proportions */
+.customer-gallery-section.gallery-editorial{background:linear-gradient(155deg,#fff 0%,#f7faff 100%);padding:clamp(16px,2.7vw,34px);border-radius:28px;margin-top:46px}
+.gallery-editorial .gallery-heading{padding-bottom:18px;border-bottom:1px solid #e4eaf0;margin-bottom:24px;align-items:flex-start}
+.gallery-editorial .gallery-heading .section-kicker{letter-spacing:2px;font-size:10px;color:#1675c2;font-weight:900}
+.gallery-editorial .gallery-heading h2{font-family:'Plus Jakarta Sans',system-ui,sans-serif;font-size:clamp(26px,3.4vw,44px);line-height:1.17;max-width:780px;letter-spacing:-1.5px}
+.gallery-editorial .gallery-heading p{max-width:760px;font-size:14px}
+.customer-gallery-grid.gallery-news-grid{display:block;columns:3 260px;column-gap:20px;}
+.gallery-news-card{display:inline-block;vertical-align:top;width:100%;break-inside:avoid;-webkit-column-break-inside:avoid;margin:0 0 20px;overflow:hidden;border-radius:17px;background:#fff;border:1px solid #e1e7ee;box-shadow:0 10px 28px rgba(20,40,62,.065)}
+.gallery-news-card .customer-photo-frame{aspect-ratio:auto!important;height:auto!important;min-height:0!important;overflow:hidden;background:#f0f3f5;display:block}
+.gallery-news-card .customer-photo-frame img{width:100%!important;height:auto!important;max-height:none!important;aspect-ratio:auto!important;object-fit:contain!important;object-position:center!important;display:block}
+.gallery-news-card .customer-photo-frame.gallery-image-missing{min-height:155px;display:grid;place-items:center}
+.gallery-news-card .customer-photo-frame.gallery-image-missing::after{content:'Foto tidak tersedia';color:#6b7c8b;font-size:12px}
+.gallery-news-card .customer-photo-copy{padding:18px 18px 20px}
+.gallery-news-card .gallery-news-category{display:inline-block;background:#e9f3fd;color:#15699c;border-radius:6px;padding:6px 8px;font-size:10px;letter-spacing:1px;font-weight:900;text-transform:uppercase}
+.gallery-news-card .customer-photo-copy h3{font-family:'Plus Jakarta Sans',system-ui,sans-serif;font-size:clamp(15px,1.2vw,18px);line-height:1.4;margin:12px 0 8px;color:#17334a;letter-spacing:-.35px}
+.gallery-news-card .gallery-news-meta{display:flex;flex-wrap:wrap;gap:7px;color:#778696;font-size:11px;line-height:1.5;margin-bottom:9px}
+.gallery-news-card .gallery-meta-dot{color:#b2bbc5}
+.gallery-news-card .customer-photo-copy p{font-size:12.5px;line-height:1.8;color:#586c7c;min-height:0;margin:0 0 16px}
+.gallery-news-card .gallery-news-cta{font-size:11px;padding:11px 15px}
+.gallery-admin-grid.gallery-news-grid{columns:3 230px;}
+.gallery-admin-grid.gallery-news-grid .customer-photo-copy .admin-toolbar{margin-top:15px}
+.gallery-editor-preview{display:block!important;width:100%;height:auto!important;max-height:260px;object-fit:contain!important;background:#f0f4f8}
+@media (max-width:1080px){.customer-gallery-grid.gallery-news-grid,.gallery-admin-grid.gallery-news-grid{columns:2 225px;column-gap:16px}}
+@media (max-width:650px){.customer-gallery-grid.gallery-news-grid,.gallery-admin-grid.gallery-news-grid{columns:1;column-gap:0}.gallery-news-card{margin-bottom:15px}.customer-gallery-section.gallery-editorial{margin-top:30px;padding:17px;border-radius:18px}.gallery-editorial .gallery-heading{margin-bottom:17px}.gallery-news-card .customer-photo-copy{padding:17px}.gallery-news-card .customer-photo-copy h3{font-size:17px}}
+</style>
+</head><body><div id="app"></div><div id="modal-root"></div><div id="print-root" style="display:none"></div><script type="module" src="./app.js?v=20261105-gallery-v12"></script></body></html>
