@@ -1,7 +1,7 @@
 
 import {initializeApp} from 'https://www.gstatic.com/firebasejs/13.2.0/firebase-app.js';
 import {getAuth,onAuthStateChanged,signInWithEmailAndPassword,signOut} from 'https://www.gstatic.com/firebasejs/13.2.0/firebase-auth.js';
-import {getFirestore,collection,doc,getDoc,getDocFromServer,onSnapshot,setDoc,deleteDoc,writeBatch,serverTimestamp} from 'https://www.gstatic.com/firebasejs/13.2.0/firebase-firestore.js';
+import {getFirestore,collection,doc,getDoc,getDocFromServer,getDocsFromServer,onSnapshot,setDoc,deleteDoc,writeBatch,serverTimestamp} from 'https://www.gstatic.com/firebasejs/13.2.0/firebase-firestore.js';
 import {firebaseConfig} from './firebase-config.js';
 import {DEFAULT_PRODUCTS} from './products-default.js';
 const app=initializeApp(firebaseConfig),auth=getAuth(app),db=getFirestore(app);
@@ -95,7 +95,7 @@ function productVisual(p){
  }
  return `<img loading="lazy" src="${safeImg(p.img)}" alt="${esc(p.name)}" onerror="this.style.opacity='.15'">`;
 }
-function cards(list){return list.length?list.map(p=>`<article class="product"><div class="photo">${productVisual(p)}<span class="tag">${esc(p.category)}</span></div><div class="product-body"><h3>${esc(p.name)}</h3><p class="desc">${esc(p.desc)}</p><div class="buyrow"><div>${settings.showPrices?`<div class="price">${money(p.price)}</div>`:'<span class="pill">Tanya harga</span>'}</div><button class="btn sm" data-add="${esc(p.id)}">+ Pesan</button></div></div></article>`).join(''):'<div class="empty">Belum ada produk atau produk tidak ditemukan.</div>'}
+function cards(list){return list.length?list.map(p=>`<article class="product" data-product-id="${esc(p.id)}"><div class="photo">${productVisual(p)}<span class="tag">${esc(p.category)}</span></div><div class="product-body"><h3>${esc(p.name)}</h3><p class="desc">${esc(p.desc)}</p><div class="buyrow"><div>${settings.showPrices?`<div class="price">${money(p.price)}</div>`:'<span class="pill">Tanya harga</span>'}</div><button class="btn sm" data-add="${esc(p.id)}">+ Pesan</button></div></div></article>`).join(''):'<div class="empty">Belum ada produk atau produk tidak ditemukan.</div>'}
 function publicPage(){let cats=['Semua',...new Set(catalogProducts().map(p=>p.category))];return `${header()}<div class="container">${syncBar()}<section class="hero"><div class="hero-inner"><span class="eyebrow">✦ KATALOG DIGITAL PREMIUM</span><h1>${esc(settings.headline).replaceAll('&lt;em&gt;','<em>').replaceAll('&lt;/em&gt;','</em>')}</h1><p>${esc(settings.description)}</p><div class="hero-actions"><a href="#produk" class="btn">Jelajahi Katalog ↗</a><a href="${wa('Halo, saya ingin konsultasi cetak.')}" target="_blank" rel="noopener" class="btn light">☏ Konsultasi Gratis</a><button class="btn hero-share" data-act="share">↗ Bagikan Katalog</button></div></div></section><div class="benefits"><div class="benefit"><div class="benefit-icon">⚡</div><div><b>Proses Satset</b><small>Cepat dan tepat waktu</small></div></div><div class="benefit"><div class="benefit-icon">✦</div><div><b>Hasil Berkualitas</b><small>Warna tajam dan maksimal</small></div></div><div class="benefit"><div class="benefit-icon">🤝</div><div><b>Harga Bersahabat</b><small>Untuk semua kebutuhan</small></div></div></div><section id="produk"><div class="section-head"><div><h2>Pilihan produk terbaik</h2><p>Katalog otomatis mengikuti perubahan dari admin.</p></div><input id="search" class="search" placeholder="⌕ Cari produk..." value="${esc(search)}"></div><div class="filters">${cats.map(c=>`<button class="chip ${category===c?'active':''}" data-cat="${esc(c)}">${esc(c)}</button>`).join('')}</div><div id="products" class="products">${cards(filtered())}</div></section></div><footer class="foot" id="tentang"><div class="container foot-inner"><div><h3>${esc(settings.business)}</h3><p>${esc(settings.description)}</p><p>Murah – Berkualitas – Satset</p></div><div><h3>Hubungi kami</h3><p>📍 ${esc(settings.address)}</p><a href="${wa('Halo Fatin Art!')}" target="_blank" rel="noopener" class="btn sm">WhatsApp Admin ↗</a></div></div></footer>`}
 function render(){applyTheme();$('app').innerHTML=view==='admin'&&isAdmin?adminPage():publicPage();if($('search'))$('search').addEventListener('input',e=>{search=e.target.value;$('products').innerHTML=cards(filtered())});updateStatusDisplay()}
 function share(){socialShare()}
@@ -121,13 +121,13 @@ function adminPage(){
 }
 function previewAdminProducts(){return `<div class="empty-admin"><div>📦</div><h3>25 produk contoh sudah tampil untuk pembeli</h3><p>Ini <b>pratinjau bawaan, belum tersimpan online</b>. Klik <b>Pulihkan 25 Produk Awal</b> setelah aturan Firestore dan UID admin benar.</p><div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:15px"><button class="btn" data-act="restore">↻ Pulihkan 25 Produk</button><button class="btn outline" data-act="diagnose">🔎 Periksa Akses Firebase</button></div><details style="text-align:left;margin-top:18px"><summary style="cursor:pointer;font-weight:800">Lihat daftar 25 produk contoh ▾</summary><div class="preview-seed-list">${DEFAULT_PRODUCTS.map((p,i)=>`<div><span>${i+1}.</span> <b>${esc(p.name)}</b><small>${money(p.price)}</small></div>`).join('')}</div></details></div>`}
 function adminPanel(){
- if(tab==='products')return `<div class="row panel-top"><div><span class="section-kicker">PRODUK DAN LAYANAN</span><h3>Kelola produk <span class="muted">(${products.length})</span></h3><p class="small muted">Produk yang disimpan otomatis muncul pada katalog publik.</p></div><div class="admin-toolbar"><button class="btn" data-act="add">＋ Tambah Produk</button><button class="btn outline" data-act="restore">↻ Pulihkan 25 Produk Awal</button></div></div>${!products.length?previewAdminProducts():''}}<div class="admin-products">${products.map(p=>`<div class="admin-product"><img src="${safeImg(p.img)}" alt="${esc(p.name)}" onerror="this.style.opacity='.2'"><div class="grow"><b>${esc(p.name)}</b><small>${esc(p.category)} · ${money(p.price)}</small></div><div class="admin-actions"><button class="btn ghost sm" data-edit="${esc(p.id)}">✎ Edit</button><button class="btn red sm" data-delete="${esc(p.id)}">✕</button></div></div>`).join('')}</div>`;
+ if(tab==='products')return `<div class="row panel-top"><div><span class="section-kicker">PRODUK DAN LAYANAN</span><h3>Kelola produk <span class="muted">(${products.length})</span> <small class="small muted">· Fix sinkron foto v3</small></h3><p class="small muted">Produk yang disimpan otomatis muncul pada katalog publik.</p></div><div class="admin-toolbar"><button class="btn" data-act="add">＋ Tambah Produk</button><button class="btn outline" data-act="restore">↻ Pulihkan 25 Produk Awal</button><button class="btn outline" data-act="refresh-products">⟳ Cek Produk Online</button></div></div>${!products.length?previewAdminProducts():''}<div class="admin-products">${products.map(p=>`<div class="admin-product"><img src="${safeImg(p.img)}" alt="${esc(p.name)}" onerror="this.style.opacity='.2'"><div class="grow"><b>${esc(p.name)}</b><small>${esc(p.category)} · ${money(p.price)}</small></div><div class="admin-actions"><button class="btn ghost sm" data-edit="${esc(p.id)}">✎ Edit</button><button class="btn red sm" data-delete="${esc(p.id)}">✕</button></div></div>`).join('')}</div>`;
  if(tab==='design')return `<div class="panel-top"><span class="section-kicker">TAMPILAN KATALOG</span><h3>20 Tema Website Premium</h3><p class="small muted">Pilih tema — desain, warna, dan nuansa katalog akan diperbarui secara real-time untuk semua pengunjung.</p></div><div class="theme-grid">${THEMES.map(t=>`<button class="theme-card ${settings.template===t.id?'chosen':''}" data-template="${t.id}" type="button"><span class="theme-snapshot" style="background:${t.hero}"><span class="theme-mini-bar"></span><span class="theme-mini-title"></span><span class="theme-mini-sub"></span><span class="theme-mini-pill" style="background:${t.accent}"></span></span><span class="theme-meta"><span><b>${esc(t.name)}</b><small>${esc(t.note)}</small></span>${settings.template===t.id?'<span class="theme-check">✓</span>':''}</span></button>`).join('')}</div><div class="design-extras"><div class="design-section"><h3>Warna utama kustom</h3><p class="small muted">Gunakan warna pilihan Anda tanpa mengubah jenis tema.</p><div class="palette">${['#f45a35','#0e9f86','#5167d7','#a044a4','#d69c32','#202938','#df3e65','#b58b43','#1675c2','#26734f','#8259c2','#cb5580','#793cdd','#0b8f95'].map(c=>`<button class="swatch ${settings.accent===c?'active':''}" style="background:${c}" data-color="${c}" aria-label="Pilih warna ${c}"></button>`).join('')}</div></div><div class="design-section"><h3>Background Katalog</h3><p class="small muted">Pilih background bawaan tema, warna solid, pola, atau unggah foto PNG/JPG dari komputer.</p><form id="backgroundForm"><div class="formgrid"><div class="formrow"><label>Mode background<select name="backgroundMode" class="field">${[['theme','Background bawaan tema'],['solid','Warna solid'],['pattern','Pola geometris'],['image','Foto sendiri (PNG/JPG)']].map(([v,n])=>`<option value="${v}" ${settings.backgroundMode===v?'selected':''}>${n}</option>`).join('')}</select></label></div><div class="formrow"><label>Warna dasar<input class="field color-input" type="color" name="backgroundColor" value="${validHex(settings.backgroundColor)?settings.backgroundColor:'#f8f8fb'}"></label></div></div><div class="formrow"><label>Unggah background foto PNG/JPG/WEBP (maks. 12 MB)<input class="field" id="backgroundFile" type="file" accept="image/png,image/jpeg,image/webp"></label><p class="small muted">Foto diperkecil secara otomatis untuk katalog web dan disimpan ke Firestore. Bukan tempat menyimpan file cetak HD.</p>${settings.backgroundImage?`<img class="preview background-preview" id="backgroundPreview" src="${safeImg(settings.backgroundImage)}">`:'<img class="preview background-preview hidden" id="backgroundPreview">'}</div><div class="formrow"><label>Lapisan terang di atas foto: <b id="overlayValue">${Number(settings.backgroundOverlay??82)}%</b><input class="field" type="range" name="backgroundOverlay" min="0" max="95" value="${Number(settings.backgroundOverlay??82)}" oninput="document.getElementById('overlayValue').textContent=this.value+'%'" style="padding:4px"></label></div><div class="admin-toolbar"><button class="btn" type="submit">💾 Simpan Background Online</button>${settings.backgroundImage?'<button class="btn red" type="button" data-act="remove-bg">Hapus Foto Background</button>':''}</div></form></div></div>`;
  if(tab==='settings')return `<h3>Identitas, konten & kontak resmi</h3><p class="small muted">Hanya admin yang dapat mengubah pengaturan ini. Untuk mengganti foto background, buka tab <b>20 Tema & Background</b>.</p><form id="settingsForm"><div class="formgrid"><div class="formrow"><label>Nama usaha<input class="field" name="business" maxlength="120" required value="${esc(settings.business)}"></label></div><div class="formrow"><label>Subjudul<input class="field" name="subtitle" maxlength="120" value="${esc(settings.subtitle)}"></label></div></div><div class="formrow"><label>Judul banner (boleh memakai &lt;em&gt;)<input class="field" name="headline" maxlength="250" value="${esc(settings.headline)}"></label></div><div class="formrow"><label>Deskripsi<textarea class="field" name="description" maxlength="1200" rows="3">${esc(settings.description)}</textarea></label></div><div class="formgrid"><div class="formrow"><label>Nomor WhatsApp admin<input class="field" name="wa" maxlength="24" required value="${esc(settings.wa)}"></label></div><div class="formrow"><label>Alamat<input class="field" name="address" maxlength="300" value="${esc(settings.address)}"></label></div></div><div class="formrow"><label>Logo PNG/JPG<input class="field" id="logoFile" type="file" accept="image/png,image/jpeg,image/webp"></label>${settings.logo?`<img class="preview" src="${safeImg(settings.logo)}">`:''}</div><div class="formrow"><label><input name="showPrices" type="checkbox" ${settings.showPrices?'checked':''}> Tampilkan harga di katalog</label></div><button class="btn" type="submit">Simpan Pengaturan Online</button></form>`;
  if(tab==='orders')return `<div class="row"><div><h3>Nota dari pesanan WhatsApp</h3><p class="small muted">Hanya admin yang dapat melihat data pelanggan.</p></div><button class="btn sm" data-act="new-order">+ Buat Nota</button></div>${orders.map(o=>`<div class="admin-product" style="display:block;margin:12px 0"><div class="row"><b>${esc(o.id)} · ${esc(o.name)}</b><span class="pill">${esc(o.status)}</span></div><p class="small muted">${esc(o.date||'')} • ${esc(o.phone)} • ${money(o.total)}</p><p class="small">${esc(o.items)}</p><div class="admin-toolbar"><select class="field" style="max-width:210px" data-status="${esc(o.id)}">${['Menunggu konfirmasi','Diproses','Selesai','Lunas','Dibatalkan'].map(x=>`<option ${o.status===x?'selected':''}>${x}</option>`).join('')}</select><button class="btn outline sm" data-invoice="${esc(o.id)}">Lihat / Cetak</button><button class="btn ghost sm" data-edit-order="${esc(o.id)}">Edit</button><button class="btn red sm" data-delete-order="${esc(o.id)}">Hapus</button></div></div>`).join('')||'<p class="small muted">Belum ada nota. Buat nota setelah menerima pesanan melalui WhatsApp.</p>'}`;
  return `<h3>Cadangan dan impor data</h3><p class="small muted">Ekspor JSON untuk menyimpan salinan produk dan pengaturan. Jangan bagikan file berisi data pribadi.</p><div class="admin-toolbar"><button class="btn" data-act="export">⬇ Ekspor JSON</button><label class="btn outline">⬆ Impor JSON<input type="file" id="importFile" accept=".json,application/json" hidden></label></div><hr style="border:0;border-top:1px solid var(--border);margin:25px 0"><h3>Migrasi katalog lama</h3><p class="small muted">Mengunggah data dari versi lokal aplikasi sebelumnya pada browser ini, tanpa menghapus produk online lain.</p><button class="btn outline" data-act="migrate">Migrasikan produk lokal ke Firebase</button>`;
 }
-function productForm(id=''){const p=products.find(x=>x.id===id)||{name:'',category:'',price:0,desc:'',img:''};popup(id?'Edit Produk':'Tambah Produk',`<form id="productForm" data-id="${esc(id)}"><div class="formrow"><label>Nama produk<input class="field" name="name" maxlength="130" required value="${esc(p.name)}"></label></div><div class="formgrid"><div class="formrow"><label>Kategori<input class="field" name="category" maxlength="60" required value="${esc(p.category)}"></label></div><div class="formrow"><label>Harga (Rp)<input class="field" name="price" type="number" min="0" max="1000000000" required value="${Number(p.price)||0}"></label></div></div><div class="formrow"><label>Deskripsi<textarea class="field" name="desc" maxlength="1500" rows="3">${esc(p.desc)}</textarea></label></div><div class="formrow"><label>Upload PNG/JPG/WEBP maksimal 12 MB<input class="field" type="file" id="photoFile" accept="image/png,image/jpeg,image/webp"></label><p class="small muted">Foto dikompresi otomatis dan disimpan di Firestore. Tidak cocok menyimpan file cetak HD.</p><img class="preview ${p.img?'':'hidden'}" id="photoPreview" src="${safeImg(p.img)}"></div><button class="btn full" type="submit">Simpan Produk ke Firebase</button></form>`)}
+function productForm(id=''){const p=products.find(x=>x.id===id)||{name:'',category:'',price:0,desc:'',img:''};popup(id?'Edit Produk':'Tambah Produk',`<form id="productForm" data-id="${esc(id)}"><div class="formrow"><label>Nama produk<input class="field" name="name" maxlength="130" required value="${esc(p.name)}"></label></div><div class="formgrid"><div class="formrow"><label>Kategori<input class="field" name="category" maxlength="60" required value="${esc(p.category)}"></label></div><div class="formrow"><label>Harga (Rp)<input class="field" name="price" type="number" min="0" max="1000000000" required value="${Number(p.price)||0}"></label></div></div><div class="formrow"><label>Deskripsi<textarea class="field" name="desc" maxlength="1500" rows="3">${esc(p.desc)}</textarea></label></div><div class="formrow"><label>Upload PNG/JPG/WEBP maksimal 12 MB<input class="field" type="file" id="photoFile" accept="image/png,image/jpeg,image/webp"></label><p class="small muted">Foto dikompresi otomatis dan disimpan di Firestore. Tidak cocok menyimpan file cetak HD.</p><img class="preview ${p.img?'':'hidden'}" id="photoPreview" src="${safeImg(p.img)}"></div><p class="notice" style="margin:12px 0">Foto yang tampil di atas masih <b>pratinjau</b>. Klik tombol di bawah dan tunggu pesan <b>“Produk terverifikasi di Firebase”</b> sebelum menutup halaman.</p><div id="product-save-status" role="status" aria-live="polite" class="small muted" style="margin-bottom:10px"></div><button class="btn full" type="submit">💾 Simpan & Verifikasi Produk</button></form>`)}
 async function shrink(file){
  if(!file)return '';
  if(!['image/png','image/jpeg','image/webp'].includes(file.type)||file.size>12*1024*1024)throw Error('Gunakan PNG/JPG/WEBP maksimal 12 MB.');
@@ -158,8 +158,66 @@ async function shrink(file){
    if(url)URL.revokeObjectURL(url);
  }
 }
-async function saveProduct(f){if(busy)return;busy=true;const b=f.querySelector('button[type="submit"]');b.disabled=true;let d=new FormData(f),id=f.dataset.id||`p${Date.now().toString(36)}${Math.random().toString(36).slice(2,6)}`;try{const old=products.find(x=>x.id===id),img=$('photoFile').files[0]?await shrink($('photoFile').files[0]):old?.img||'';await setDoc(doc(db,'products',id),{id,name:String(d.get('name')).trim(),category:String(d.get('category')).trim(),price:Number(d.get('price')),desc:String(d.get('desc')).trim(),img,updatedAt:serverTimestamp()});lastWriteError='';closePopup();toast('Produk tersimpan dan tersinkron online.')}catch(e){writeFail(e,'Menyimpan produk')}finally{busy=false;b.disabled=false}}
-async function saveSettings(f){if(busy)return;busy=true;const b=f.querySelector('button[type="submit"]');b.disabled=true;let d=new FormData(f),s={...settings};for(const k of ['business','subtitle','headline','description','wa','address'])s[k]=String(d.get(k)||'').trim();s.showPrices=f.elements.showPrices.checked;try{if($('logoFile').files[0])s.logo=await shrink($('logoFile').files[0]);await setDoc(doc(db,'public','catalog'),s);lastWriteError='';toast('Pengaturan tersimpan online.')}catch(e){writeFail(e,'Menyimpan pengaturan usaha')}finally{busy=false;b.disabled=false}}
+function sortOnlineProducts(){products.sort((a,b)=>String(a.id).localeCompare(String(b.id),undefined,{numeric:true}))}
+function updateOnlineProduct(p){products=[...products.filter(x=>x.id!==p.id),p];sortOnlineProducts();pReady=true;productError='';updateConnectionError();render()}
+async function fetchProductsFromServer(){
+ if(!isAdmin) return toast('Hanya admin dapat memeriksa data online.');
+ try{
+  const snap=await getDocsFromServer(collection(db,'products'));
+  products=snap.docs.map(d=>({...d.data(),id:d.id}));sortOnlineProducts();pReady=true;productError='';updateConnectionError();render();
+  toast(`Data terbaru dari server: ${products.length} produk online.`);
+ }catch(e){writeFail(e,'Memuat ulang daftar produk dari server')}
+}
+async function saveProduct(f){
+ if(!isAdmin)return toast('Hanya admin yang dapat menyimpan produk.');
+ if(busy)return toast('Penyimpanan lain sedang berjalan. Coba tekan Simpan lagi setelah proses selesai.');
+ const button=f.querySelector('button[type="submit"]');
+ const status=$('product-save-status');
+ const id=f.dataset.id||`p${Date.now().toString(36)}${Math.random().toString(36).slice(2,6)}`;
+ const data=new FormData(f),old=products.find(x=>x.id===id),file=$('photoFile')?.files?.[0];
+ busy=true;button.disabled=true;button.textContent='⏳ Menyiapkan dan mengirim produk…';
+ if(status)status.textContent='Mohon jangan menutup jendela. Memproses gambar dan menulis ke server…';
+ let committed=false;
+ try{
+  const img=file?await shrink(file):old?.img||'';
+  const payload={id,name:String(data.get('name')).trim(),category:String(data.get('category')).trim(),price:Number(data.get('price')),desc:String(data.get('desc')).trim(),img,updatedAt:serverTimestamp()};
+  if(!payload.name||!payload.category)throw Error('Nama produk dan kategori wajib diisi.');
+  if(!Number.isFinite(payload.price)||payload.price<0)throw Error('Harga harus berupa angka yang valid.');
+  if(status)status.textContent='Mengirim data produk ke Firestore…';
+  await setDoc(doc(db,'products',id),payload);
+  committed=true;
+  if(status)status.textContent='Membaca kembali produk dari server untuk memastikan foto terbaru tersimpan…';
+  const saved=await getDocFromServer(doc(db,'products',id));
+  if(!saved.exists())throw Error('Server belum mengembalikan dokumen produk.');
+  const remote={...saved.data(),id:saved.id};
+  if(remote.name!==payload.name||remote.img!==payload.img||remote.price!==payload.price){
+   throw Error('Isi produk yang dibaca dari server belum cocok dengan data terbaru.');
+  }
+  updateOnlineProduct(remote);
+  lastWriteError='';
+  closePopup();
+  popup('✅ Produk terverifikasi di Firebase',`<p>Foto dan informasi <b>${esc(remote.name)}</b> berhasil disimpan dan dibaca ulang dari server.</p><p class="small muted">Perubahan produk akan muncul di katalog pelanggan yang terhubung ke database yang sama. Bila tab katalog sudah terbuka, perbarui halaman tersebut.</p><div class="admin-toolbar"><a class="btn" href="${esc(customerURL())}#produk" target="_blank" rel="noopener noreferrer">👁 Lihat di Katalog Pembeli ↗</a><button class="btn outline" type="button" data-act="close">Lanjut Kelola Produk</button></div>`);
+  toast('Produk terverifikasi di Firebase. Foto katalog diperbarui.');
+ }catch(e){
+  writeFail(e,committed?'Memverifikasi produk setelah disimpan':'Menyimpan produk');
+  if(status)status.textContent=committed?'Produk dikirim ke server tetapi pembacaan ulang belum berhasil. Coba Cek Produk Online.':'Gagal menyimpan: '+errMsg(e);
+ }finally{
+  busy=false;
+  if(button.isConnected){button.disabled=false;button.textContent='💾 Simpan & Verifikasi Produk';}
+ }
+}
+async function saveSettings(f){
+ if(busy)return toast('Penyimpanan lain masih berjalan. Silakan coba lagi.');
+ busy=true;const b=f.querySelector('button[type="submit"]');b.disabled=true;b.textContent='⏳ Menyimpan…';
+ let d=new FormData(f),s={...settings};for(const k of ['business','subtitle','headline','description','wa','address'])s[k]=String(d.get(k)||'').trim();s.showPrices=f.elements.showPrices.checked;
+ try{
+  if($('logoFile').files[0])s.logo=await shrink($('logoFile').files[0]);
+  await setDoc(doc(db,'public','catalog'),s);
+  const remote=await getDocFromServer(doc(db,'public','catalog'));
+  if(!remote.exists())throw Error('Data pengaturan belum ditemukan pada server setelah penyimpanan.');
+  settings={...def,...remote.data()};lastWriteError='';render();toast('Pengaturan usaha berhasil disimpan dan diperiksa di Firebase.');
+ }catch(e){writeFail(e,'Menyimpan dan memverifikasi pengaturan usaha')}finally{busy=false;if(b.isConnected){b.disabled=false;b.textContent='Simpan Pengaturan Online'}}
+}
 async function design(patch){
  if(!isAdmin||busy)return;
  const previous={...settings};let next={...settings,...patch};
@@ -169,7 +227,20 @@ async function design(patch){
  catch(e){settings=previous;writeFail(e,'Mengganti tema');render()}
  finally{busy=false}
 }
-async function saveBackground(f){if(!isAdmin||busy)return;busy=true;const btn=f.querySelector('button[type="submit"]');btn.disabled=true;try{let d=new FormData(f),mode=String(d.get('backgroundMode')),bg={...settings,backgroundMode:MODES.includes(mode)?mode:'theme',backgroundColor:validHex(d.get('backgroundColor'))?d.get('backgroundColor'):currentTheme().bg,backgroundOverlay:Math.max(0,Math.min(95,Number(d.get('backgroundOverlay'))||0))};let file=$('backgroundFile')?.files?.[0];if(file){bg.backgroundImage=await shrink(file);bg.backgroundMode='image'}if(bg.backgroundMode==='image'&&!bg.backgroundImage)throw Error('Unggah foto background terlebih dahulu.');await setDoc(doc(db,'public','catalog'),bg);lastWriteError='';toast('Background tersimpan online untuk seluruh pelanggan.')}catch(e){writeFail(e,'Menyimpan background')}finally{busy=false;btn.disabled=false}}
+async function saveBackground(f){
+ if(!isAdmin||busy)return toast('Tunggu penyimpanan sebelumnya selesai.');
+ busy=true;const btn=f.querySelector('button[type="submit"]');btn.disabled=true;btn.textContent='⏳ Menyimpan background…';
+ try{
+  let d=new FormData(f),mode=String(d.get('backgroundMode'));
+  let bg={...settings,backgroundMode:MODES.includes(mode)?mode:'theme',backgroundColor:validHex(d.get('backgroundColor'))?d.get('backgroundColor'):currentTheme().bg,backgroundOverlay:Math.max(0,Math.min(95,Number(d.get('backgroundOverlay'))||0))};
+  let file=$('backgroundFile')?.files?.[0];if(file){bg.backgroundImage=await shrink(file);bg.backgroundMode='image'}
+  if(bg.backgroundMode==='image'&&!bg.backgroundImage)throw Error('Unggah foto background terlebih dahulu.');
+  await setDoc(doc(db,'public','catalog'),bg);
+  const verified=await getDocFromServer(doc(db,'public','catalog'));
+  if(!verified.exists()||verified.data().backgroundMode!==bg.backgroundMode||verified.data().backgroundImage!==bg.backgroundImage)throw Error('Background belum terverifikasi dari server.');
+  settings={...def,...verified.data()};lastWriteError='';render();toast('Background diperbarui dan terverifikasi di Firebase.');
+ }catch(e){writeFail(e,'Menyimpan background')}finally{busy=false;if(btn.isConnected){btn.disabled=false;btn.textContent='💾 Simpan Background Online'}}
+}
 async function removeBackground(){if(!isAdmin||!confirm('Hapus foto background saat ini?'))return;try{await setDoc(doc(db,'public','catalog'),{...settings,backgroundImage:'',backgroundMode:'theme'});toast('Foto background dihapus.')}catch(e){writeFail(e,'Menghapus background')}}
 async function restoreDefaults(){
  if(!isAdmin||busy)return;
@@ -269,6 +340,7 @@ document.addEventListener('click',async e=>{
  if(act==='add')return productForm();
  if(act==='restore'||act==='seed')return restoreDefaults();
  if(act==='diagnose')return diagnoseFirebase();
+ if(act==='refresh-products')return fetchProductsFromServer();
  if(act==='copy-uid')return copyUID();
  if(act==='test-write')return testWrite();
  if(act==='remove-bg')return removeBackground();
