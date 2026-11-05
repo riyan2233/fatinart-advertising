@@ -272,4 +272,27 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,te
  .slider-pause{padding:6px 8px}
 }
 @media(prefers-reduced-motion:reduce){*,*:before,*:after{scroll-behavior:auto!important;animation-duration:.01ms!important;transition-duration:.01ms!important}}
-</style></head><body><div id="app"></div><div id="modal-root"></div><div id="print-root" style="display:none"></div><script type="module" src="./app.js?v=20261105-responsive-v9"></script></body></html>
+</style><style>
+/* Customer Gallery v10 */
+.customer-catalog .photo{aspect-ratio:4/3;overflow:hidden}
+.customer-catalog .photo img{width:100%;height:100%;object-fit:cover;transition:transform .28s ease}
+.customer-catalog:hover .photo img{transform:scale(1.035)}
+.customer-catalog .buyrow{align-items:center}
+.customer-catalog .buyrow .pill{font-size:11px}
+.customer-catalog .btn[data-add]{white-space:normal;text-align:center;line-height:1.25}
+.banner-edit-preview{aspect-ratio:16/6;object-fit:cover}
+.banner-card-admin img{object-fit:cover}
+@media(max-width:700px){
+ .slider-controls{gap:clamp(2px,.7vw,5px)}
+ .slider-number{display:none}
+ .slider-dot{flex:none;width:8px;height:8px;margin:0 1px}
+ .slider-circle{flex:none;width:26px;height:30px;padding:0}
+ .slider-pause{flex:none;margin-left:0;padding:5px 7px}
+ .customer-catalog .photo{aspect-ratio:1/1}
+}
+@media(max-width:390px){
+ .nav .btn[data-act="manual-order"]{font-size:0;line-height:1;min-width:40px}
+ .nav .btn[data-act="manual-order"] span{display:none}
+ .nav .btn[data-act="manual-order"]::before{content:"📝";font-size:18px}
+}
+</style></head><body><div id="app"></div><div id="modal-root"></div><div id="print-root" style="display:none"></div><script type="module" src="./app.js?v=20261105-customer-v10"></script></body></html>
